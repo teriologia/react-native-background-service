@@ -6,3 +6,4 @@ android/app/build/
 android/.idea/
 android/*.iml
 android/.gradle/*
+rn-heartbeat.zip

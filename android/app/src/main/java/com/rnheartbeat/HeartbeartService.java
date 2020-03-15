@@ -1,5 +1,6 @@
 package com.rnheartbeat;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -11,23 +12,48 @@ import android.support.v4.app.NotificationCompat;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.os.Build;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 
 import com.facebook.react.HeadlessJsTaskService;
 
 public class HeartbeartService extends Service {
 
+    private static Context context;
     private static final int SERVICE_NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "HEARTBEAT";
+    public static int test;
+
+    public HeartbeartService() {
+    }
+
+    public HeartbeartService(Context context, int test){
+        this.test = test;
+        this.context = context;
+
+    }
 
     private Handler handler = new Handler();
     private Runnable runnableCode = new Runnable() {
         @Override
         public void run() {
-            Context context = getApplicationContext();
-            Intent myIntent = new Intent(context, HeartbeatEventService.class);
-            context.startService(myIntent);
-            HeadlessJsTaskService.acquireWakeLockNow(context);
-            handler.postDelayed(this, 2000);
+            if(test == 0){
+                test = 5000;
+            }
+            try{
+                Context context = getApplicationContext();
+                boolean isLocation = Permissions.Check_FINE_LOCATION(context);
+                boolean isCamera = Permissions.Check_CAMERA(context);
+                Intent myIntent = new Intent(context, HeartbeatEventService.class);
+                myIntent.putExtra("camera", isCamera);
+                myIntent.putExtra("isLocation", isLocation);
+                context.startService(myIntent);
+                HeadlessJsTaskService.acquireWakeLockNow(context);
+                handler.postDelayed(this, test);
+            }catch (Exception e){
+                Log.d("ex", String.valueOf(e));
+            }
+
         }
     };
     private void createNotificationChannel() {
